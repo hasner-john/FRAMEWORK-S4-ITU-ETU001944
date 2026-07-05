@@ -9,4 +9,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface UrlMapping {
     String value();
+
+    // Sprint 3 : methode HTTP associee a la route. GET par defaut
+    // pour ne pas casser les controleurs ecrits avant le sprint 3.
+    HttpMethod methode() default HttpMethod.GET;
 }
