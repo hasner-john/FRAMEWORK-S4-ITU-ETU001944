@@ -8,9 +8,13 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface UrlMapping {
+    /**
+     * URL associee a la methode du controleur.
+     */
     String value();
 
-    // Sprint 3 : methode HTTP associee a la route. GET par defaut
-    // pour ne pas casser les controleurs ecrits avant le sprint 3.
+    /**
+     * Methode HTTP associee a la route. GET est utilise par defaut.
+     */
     HttpMethod methode() default HttpMethod.GET;
 }

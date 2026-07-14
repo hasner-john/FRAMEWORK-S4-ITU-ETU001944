@@ -1,19 +1,30 @@
 package mg.hasner.framework;
 
+import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Map;
 
 public class FrontControllerServlet extends HttpServlet {
 
     private MappingRegistry registry;
+    private String viewPrefix;
+    private String viewSuffix;
 
+    /**
+     * Initialise le servlet et recupere le mapping deja construit par le listener.
+     * Si le listener n'a pas encore prepare le registre, le servlet le cree lui-meme.
+     */
     @Override
     public void init() throws ServletException {
         super.init();
+        viewPrefix = getConfiguredValue("viewPrefix", "/");
+        viewSuffix = getConfiguredValue("viewSuffix", ".jsp");
+
         Object value = getServletContext().getAttribute(FrameworkContextListener.REGISTRY_ATTRIBUTE);
 
         if (value instanceof MappingRegistry) {
@@ -24,28 +35,36 @@ public class FrontControllerServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Traite les requetes HTTP GET en gardant la methode HTTP dans la cle de route.
+     */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res)
             throws ServletException, IOException {
         processRequest(req, res, HttpMethod.GET);
     }
 
+    /**
+     * Traite les requetes HTTP POST en gardant la methode HTTP dans la cle de route.
+     */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res)
             throws ServletException, IOException {
         processRequest(req, res, HttpMethod.POST);
     }
 
+    /**
+     * Cherche la route correspondant a l'URL et a la methode HTTP, puis dispatch vers la vue.
+     */
     private void processRequest(HttpServletRequest req, HttpServletResponse res, HttpMethod httpMethod)
             throws ServletException, IOException {
         String url = getRequestedUrl(req);
 
         res.setContentType("text/html;charset=UTF-8");
-        PrintWriter out = res.getWriter();
-
-        out.println("<h2>URL demandee : " + url + " (" + httpMethod + ")</h2>");
 
         if ("/".equals(url)) {
+            PrintWriter out = res.getWriter();
+            out.println("<h2>URL demandee : " + url + " (" + httpMethod + ")</h2>");
             output(out);
             return;
         }
@@ -57,24 +76,76 @@ public class FrontControllerServlet extends HttpServlet {
                     + ". URLs existantes : " + registry.getExistingUrls());
         }
 
-        out.println("<h3>Mapping trouve</h3>");
-        out.println("<p>Controller : <b>" + route.getControllerClass().getSimpleName() + "</b></p>");
-        out.println("<p>Methode : <b>" + route.getMethod().getName() + "()</b></p>");
-        out.println("<p>HTTP : <b>" + httpMethod + "</b></p>");
-        out.println("<h3>Resultat</h3>");
-        out.println("<p>" + invokeRoute(route) + "</p>");
+        dispatchModelAndView(req, res, route);
     }
 
+    /**
+     * Invoque la methode du controleur, exige un ModelAndView et fait le forward vers la JSP.
+     */
+    private void dispatchModelAndView(HttpServletRequest req, HttpServletResponse res, RouteMapping route)
+            throws ServletException, IOException {
+        Object result = invokeRoute(route);
+
+        if (!(result instanceof ModelAndView)) {
+            throw new ServletException("Type de retour invalide pour "
+                    + route.getControllerClass().getSimpleName() + "." + route.getMethod().getName()
+                    + "() : ModelAndView attendu.");
+        }
+
+        ModelAndView modelAndView = (ModelAndView) result;
+        addArgToRequest(req, modelAndView.getData());
+
+        RequestDispatcher dispatcher = req.getRequestDispatcher(getViewPath(modelAndView.getView()));
+        dispatcher.forward(req, res);
+    }
+
+    /**
+     * Execute la methode Java associee a la route par reflexion.
+     */
     private Object invokeRoute(RouteMapping route) throws ServletException {
         try {
-            Object result = route.invoke();
-            return result == null ? "Methode invoquee avec succes." : result;
+            return route.invoke();
         } catch (ReflectiveOperationException e) {
             throw new ServletException("Erreur pendant l'invocation de la methode "
                     + route.getMethod().getName(), e);
         }
     }
 
+    /**
+     * Copie toutes les donnees du ModelAndView dans la requete servlet.
+     */
+    private void addArgToRequest(HttpServletRequest req, Map<String, Object> data) {
+        if (data == null) {
+            return;
+        }
+
+        for (Map.Entry<String, Object> entry : data.entrySet()) {
+            req.setAttribute(entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
+     * Transforme le nom logique de vue en chemin JSP avec prefixe et suffixe.
+     * Exemple : "list" devient "/list.jsp" avec les valeurs par defaut.
+     */
+    private String getViewPath(String view) throws ServletException {
+        if (view == null || view.trim().isEmpty()) {
+            throw new ServletException("La vue du ModelAndView est vide.");
+        }
+
+        String viewName = view.trim();
+        String path = viewName.startsWith("/") ? viewName : viewPrefix + viewName;
+
+        if (!viewSuffix.isEmpty() && !path.endsWith(viewSuffix)) {
+            path += viewSuffix;
+        }
+
+        return path;
+    }
+
+    /**
+     * Affiche la liste des controleurs detectes et leurs mappings.
+     */
     private void output(PrintWriter out) {
         out.println("<h3>Controleurs detectes</h3>");
 
@@ -107,6 +178,9 @@ public class FrontControllerServlet extends HttpServlet {
         out.println("</ul>");
     }
 
+    /**
+     * Retire le context path de Tomcat pour obtenir seulement l'URL applicative.
+     */
     private String getRequestedUrl(HttpServletRequest req) {
         String uri = req.getRequestURI();
         String contextPath = req.getContextPath();
@@ -116,5 +190,13 @@ public class FrontControllerServlet extends HttpServlet {
         }
 
         return uri.isEmpty() ? "/" : uri;
+    }
+
+    /**
+     * Lit une configuration du servlet dans web.xml et utilise une valeur par defaut si elle manque.
+     */
+    private String getConfiguredValue(String name, String defaultValue) {
+        String value = getServletConfig().getInitParameter(name);
+        return value == null ? defaultValue : value;
     }
 }

@@ -12,16 +12,25 @@ import java.util.Map;
 public class FrameworkInitializer {
     private final ServletContext servletContext;
 
+    /**
+     * Recoit le ServletContext pour retrouver les classes de l'application web.
+     */
     public FrameworkInitializer(ServletContext servletContext) {
         this.servletContext = servletContext;
     }
 
+    /**
+     * Lance l'initialisation du framework : scan des controleurs puis creation des routes.
+     */
     public MappingRegistry init() {
         List<Class<?>> controllers = scanControllers();
         Map<UrlMethode, RouteMapping> routes = scanRoutes(controllers);
         return new MappingRegistry(controllers, routes);
     }
 
+    /**
+     * Parcourt WEB-INF/classes et garde les classes annotees avec @Controller.
+     */
     private List<Class<?>> scanControllers() {
         List<Class<?>> result = new ArrayList<>();
         File classesDir = getClassesDirectory();
@@ -34,6 +43,9 @@ public class FrameworkInitializer {
         return result;
     }
 
+    /**
+     * Retourne le dossier physique WEB-INF/classes de l'application web.
+     */
     private File getClassesDirectory() {
         String realPath = servletContext.getRealPath("/WEB-INF/classes");
 
@@ -53,6 +65,9 @@ public class FrameworkInitializer {
         return null;
     }
 
+    /**
+     * Scanne recursivement les fichiers .class pour supporter les packages Java.
+     */
     private void scanDirectory(File rootDir, File currentDir, List<Class<?>> result) {
         File[] files = currentDir.listFiles();
 
@@ -69,6 +84,9 @@ public class FrameworkInitializer {
         }
     }
 
+    /**
+     * Charge une classe et l'ajoute si elle est annotee @Controller.
+     */
     private void addControllerClass(File rootDir, File classFile, List<Class<?>> result) {
         String className = toClassName(rootDir, classFile);
 
@@ -83,6 +101,9 @@ public class FrameworkInitializer {
         }
     }
 
+    /**
+     * Convertit un chemin de fichier .class en nom complet de classe Java.
+     */
     private String toClassName(File rootDir, File classFile) {
         String rootPath = rootDir.getAbsolutePath();
         String classPath = classFile.getAbsolutePath();
@@ -93,6 +114,9 @@ public class FrameworkInitializer {
                 .replace(".class", "");
     }
 
+    /**
+     * Construit la table de routes et detecte les conflits URL + methode HTTP.
+     */
     private Map<UrlMethode, RouteMapping> scanRoutes(List<Class<?>> controllerClasses) {
         Map<UrlMethode, RouteMapping> result = new HashMap<>();
 

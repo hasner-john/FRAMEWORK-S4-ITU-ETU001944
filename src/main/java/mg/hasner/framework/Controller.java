@@ -8,5 +8,8 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Controller {
+    /**
+     * Nom optionnel du controleur, garde pour de futures extensions.
+     */
     String value() default "";
 }

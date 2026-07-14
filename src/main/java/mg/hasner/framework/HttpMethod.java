@@ -1,6 +1,8 @@
 package mg.hasner.framework;
 
-// Enum des methodes HTTP supportees par le framework (sprint 3)
+/**
+ * Methodes HTTP supportees par le framework pour le routage.
+ */
 public enum HttpMethod {
     GET,
     POST

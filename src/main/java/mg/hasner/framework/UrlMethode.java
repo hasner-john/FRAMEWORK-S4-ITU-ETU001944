@@ -13,20 +13,31 @@ public class UrlMethode {
     private final String url;
     private final HttpMethod methode;
 
+    /**
+     * Cree une cle de route composee de l'URL et de la methode HTTP.
+     */
     public UrlMethode(String url, HttpMethod methode) {
         this.url = url;
         this.methode = methode;
     }
 
+    /**
+     * Retourne l'URL de la route.
+     */
     public String getUrl() {
         return url;
     }
 
+    /**
+     * Retourne la methode HTTP associee a la route.
+     */
     public HttpMethod getMethode() {
         return methode;
     }
 
-    // Deux UrlMethode sont egales si meme url ET meme methode HTTP
+    /**
+     * Deux routes sont egales si elles ont la meme URL et la meme methode HTTP.
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -39,12 +50,17 @@ public class UrlMethode {
         return Objects.equals(this.url, other.url) && this.methode == other.methode;
     }
 
-    // hashCode coherent avec equals (obligatoire pour une utilisation correcte en cle de Map)
+    /**
+     * Calcule un hash coherent avec equals pour utiliser UrlMethode comme cle de Map.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(url, methode);
     }
 
+    /**
+     * Affiche la route sous forme lisible, par exemple GET /list.
+     */
     @Override
     public String toString() {
         return methode + " " + url;
