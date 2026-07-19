@@ -12,6 +12,7 @@ import java.util.Map;
 public class FrontControllerServlet extends HttpServlet {
 
     private MappingRegistry registry;
+    private SpringContext springContext;
     private String viewPrefix;
     private String viewSuffix;
 
@@ -32,6 +33,14 @@ public class FrontControllerServlet extends HttpServlet {
         } else {
             registry = new FrameworkInitializer(getServletContext()).init();
             getServletContext().setAttribute(FrameworkContextListener.REGISTRY_ATTRIBUTE, registry);
+        }
+
+        Object springValue = getServletContext().getAttribute(FrameworkContextListener.SPRING_CONTEXT_ATTRIBUTE);
+        if (springValue instanceof SpringContext) {
+            springContext = (SpringContext) springValue;
+        } else {
+            springContext = SpringContext.fromServletContext(getServletContext());
+            getServletContext().setAttribute(FrameworkContextListener.SPRING_CONTEXT_ATTRIBUTE, springContext);
         }
     }
 
@@ -104,8 +113,11 @@ public class FrontControllerServlet extends HttpServlet {
      */
     private Object invokeRoute(RouteMapping route) throws ServletException {
         try {
-            return route.invoke();
+            return route.invoke(springContext);
         } catch (ReflectiveOperationException e) {
+            throw new ServletException("Erreur pendant l'invocation de la methode "
+                    + route.getMethod().getName(), e);
+        } catch (RuntimeException e) {
             throw new ServletException("Erreur pendant l'invocation de la methode "
                     + route.getMethod().getName(), e);
         }

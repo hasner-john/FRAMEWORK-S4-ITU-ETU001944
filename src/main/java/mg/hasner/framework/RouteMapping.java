@@ -53,6 +53,27 @@ public class RouteMapping {
 
     /**
      * Instancie le controleur et execute la methode cible par reflexion.
+     * Si la methode demande un SpringContext, le framework le lui donne.
+     */
+    public Object invoke(SpringContext springContext) throws ReflectiveOperationException {
+        Object controller = controllerClass.getDeclaredConstructor().newInstance();
+        method.setAccessible(true);
+
+        if (method.getParameterCount() == 0) {
+            return method.invoke(controller);
+        }
+
+        if (method.getParameterCount() == 1 && method.getParameterTypes()[0].equals(SpringContext.class)) {
+            return method.invoke(controller, springContext);
+        }
+
+        throw new IllegalArgumentException("Parametre non supporte pour "
+                + controllerClass.getSimpleName() + "." + method.getName()
+                + "() : utilisez aucun parametre ou un seul SpringContext.");
+    }
+
+    /**
+     * Garde l'ancien appel sans parametre pour les usages internes simples.
      */
     public Object invoke() throws ReflectiveOperationException {
         Object controller = controllerClass.getDeclaredConstructor().newInstance();
