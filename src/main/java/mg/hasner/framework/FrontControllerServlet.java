@@ -85,7 +85,31 @@ public class FrontControllerServlet extends HttpServlet {
                     + ". URLs existantes : " + registry.getExistingUrls());
         }
 
+        if (route.getMethod().isAnnotationPresent(APIREST.class)) {
+            writeRestResponse(res, route);
+            return;
+        }
+
         dispatchModelAndView(req, res, route);
+    }
+
+    /**
+     * Invoque une methode REST et ecrit son resultat JSON directement dans la reponse HTTP.
+     */
+    private void writeRestResponse(HttpServletResponse res, RouteMapping route)
+            throws ServletException, IOException {
+        APIREST apiRest = route.getMethod().getAnnotation(APIREST.class);
+        Object result = invokeRoute(route);
+        String json;
+
+        if (apiRest.alreadyJson() && result instanceof String) {
+            json = (String) result;
+        } else {
+            json = JsonSerializer.toJson(result);
+        }
+
+        res.setContentType("application/json;charset=UTF-8");
+        res.getWriter().write(json);
     }
 
     /**
