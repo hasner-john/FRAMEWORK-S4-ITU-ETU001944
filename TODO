@@ -85,6 +85,48 @@ Comment :
     - Du coté developpeur aussi, si le type est String mais si c'est une autre type on appel la fonction toJSON du framework
 
 
+## Sprint 7 : Binding 
+Sprint 7: Binding
+Objectif: faire enregistrer les données envoyées depuis un formulaire par paramètre
+- Créer un formulaire
+- Créer un controller qui envoie vers le formulaire: pas encore de changement au niveau framework
+- Modifier le FrontControllerServlet:
+    - vérifier si la requête contient des paramètres
+    - Si aucun paramètre -> faire un invoke simple
+    - Si des paramètres existent:
+        * récupèrer les paramètres de la requête 
+        * récupèrer leur nom et leur valeur
+        * faire le matching avec les paramètres de la méthode controller
+        * ajouter les paramètres correspondant à l'appel de la méthode
+        * faire le invoke
+- Créer la méthode 'save(...)' dans le controller 
+    * Recevoir les paramètres du formulaire
+    * Pour l'instant recevoir les paramètres directement pas un objet 
+- Relier le formulaire au 'save()'
+    * Formulaire -> bouton submit
+    * Submit -> Url
+    * Url -> FrontControllerServlet
+    * FrontControllerServlet -> mapper le controller
+    * Controller -> 'save(...)'
+- Tester le Binding
+    * Vérifier les paramètres reçus avec 'request.getParameter(...)'
+    * Vérifier que le nom du paramètre du formulaire correspond au nom du paramètre de la méthode
+    * Vérifier le nombre de paramètres
+    * Vérifier le matching
+    * Vérifier que les valeurs sont correctement passées au 'invoke'
+- Cas particulier
+    * Pour l'instant, ce n'est pas un objet
+    * Si l'objet est 'null', prendre d'abord les paramètres de la requête
+    * L'instanciation et le binding vers un objet viendront plus tard
+
+11 octobre 2026 deadline
+## Sprint 7 : Binding BIS
+Binding object
+formulaire donne un employee----------------> elle va tout de suite être utilisé comme un objet, non comme sprint 7
+
 ### Upload ana fichier    
 ### Gestion de Session
 ### Authaurisation
+
+
+

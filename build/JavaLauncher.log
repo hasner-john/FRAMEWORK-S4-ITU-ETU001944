@@ -1,18 +1,18 @@
-[2026/09/30 09:28:39.392, javac.exe (PID: 8560, TID: 6764), JavaEnvironment.cpp:502 (JavaEnvironment::detect)]
+[2026/10/07 09:55:51.285, javac.exe (PID: 3304, TID: 32436), JavaEnvironment.cpp:502 (JavaEnvironment::detect)]
 	TRACE: Entering JavaEnvironment::detect
-[2026/09/30 09:28:39.399, javac.exe (PID: 8560, TID: 6764), JavaEnvironment.cpp:519 (JavaEnvironment::detect)]
+[2026/10/07 09:55:51.304, javac.exe (PID: 3304, TID: 32436), JavaEnvironment.cpp:519 (JavaEnvironment::detect)]
 	TRACE: Installed Java detected: version=; arch=64; productCode={CB8C8B64-CB93-5BA6-AEBB-163B1270095E}; type=1
-[2026/09/30 09:28:39.405, javac.exe (PID: 8560, TID: 6764), JavaEnvironment.cpp:135 (`anonymous-namespace'::detectHomeDir)]
+[2026/10/07 09:55:51.304, javac.exe (PID: 3304, TID: 32436), JavaEnvironment.cpp:135 (`anonymous-namespace'::detectHomeDir)]
 	TRACE: Find home dir of {CB8C8B64-CB93-5BA6-AEBB-163B1270095E} Java installation
-[2026/09/30 09:28:39.405, javac.exe (PID: 8560, TID: 6764), JavaEnvironment.cpp:302 (`anonymous-namespace'::detectFullVersion)]
+[2026/10/07 09:55:51.305, javac.exe (PID: 3304, TID: 32436), JavaEnvironment.cpp:302 (`anonymous-namespace'::detectFullVersion)]
 	TRACE: Detect full version of {CB8C8B64-CB93-5BA6-AEBB-163B1270095E} Java installation
-[2026/09/30 09:28:39.406, javac.exe (PID: 8560, TID: 6764), JavaEnvironment.cpp:213 (`anonymous-namespace'::detectFullVersionFromMsi)]
+[2026/10/07 09:55:51.346, javac.exe (PID: 3304, TID: 32436), JavaEnvironment.cpp:213 (`anonymous-namespace'::detectFullVersionFromMsi)]
 	TRACE: detectFullVersionFromMsi({CB8C8B64-CB93-5BA6-AEBB-163B1270095E})
-[2026/09/30 09:28:39.411, javac.exe (PID: 8560, TID: 6764), JavaEnvironment.cpp:481 (`anonymous-namespace'::getInstalledJava)]
+[2026/10/07 09:55:51.390, javac.exe (PID: 3304, TID: 32436), JavaEnvironment.cpp:481 (`anonymous-namespace'::getInstalledJava)]
 	TRACE: InstalledJava(21.0.5+9|21.0.5+9|JDK|64bit|C:\Program Files\Java\jdk-21|{CB8C8B64-CB93-5BA6-AEBB-163B1270095E}|-10|)
-[2026/09/30 09:28:39.413, javac.exe (PID: 8560, TID: 6764), JavaEnvironment.cpp:0 (JavaEnvironment::detect)]
+[2026/10/07 09:55:51.394, javac.exe (PID: 3304, TID: 32436), JavaEnvironment.cpp:0 (JavaEnvironment::detect)]
 	TRACE: Exiting JavaEnvironment::detect (entered at JavaEnvironment.cpp:502)
-[2026/09/30 09:28:39.423, javac.exe (PID: 8560, TID: 6764), Executor.cpp:706 (Executor2::startProcess)]
-	TRACE: CreateProcess(C:\Program Files\Java\jdk-21\bin\javac.exe, "C:\Program Files\Java\jdk-21\bin\javac.exe" -cp lib\jakarta.servlet-api-6.0.0.jar -d build\classes @sources.txt) succeeded; PID=8288
-[2026/09/30 09:28:40.606, javac.exe (PID: 8560, TID: 6764), Executor.cpp:667 (Executor2::execAndWait)]
-	TRACE: Process with PID=8288 terminated. Exit code=0
+[2026/10/07 09:55:51.418, javac.exe (PID: 3304, TID: 32436), Executor.cpp:706 (Executor2::startProcess)]
+	TRACE: CreateProcess(C:\Program Files\Java\jdk-21\bin\javac.exe, "C:\Program Files\Java\jdk-21\bin\javac.exe" -cp lib\jakarta.servlet-api-6.0.0.jar -d build\classes @sources.txt) succeeded; PID=32360
+[2026/10/07 09:55:53.294, javac.exe (PID: 3304, TID: 32436), Executor.cpp:667 (Executor2::execAndWait)]
+	TRACE: Process with PID=32360 terminated. Exit code=0

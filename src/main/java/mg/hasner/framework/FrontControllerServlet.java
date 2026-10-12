@@ -86,7 +86,7 @@ public class FrontControllerServlet extends HttpServlet {
         }
 
         if (route.getMethod().isAnnotationPresent(APIREST.class)) {
-            writeRestResponse(res, route);
+            writeRestResponse(req, res, route);
             return;
         }
 
@@ -96,10 +96,10 @@ public class FrontControllerServlet extends HttpServlet {
     /**
      * Invoque une methode REST et ecrit son resultat JSON directement dans la reponse HTTP.
      */
-    private void writeRestResponse(HttpServletResponse res, RouteMapping route)
+    private void writeRestResponse(HttpServletRequest req, HttpServletResponse res, RouteMapping route)
             throws ServletException, IOException {
         APIREST apiRest = route.getMethod().getAnnotation(APIREST.class);
-        Object result = invokeRoute(route);
+        Object result = invokeRoute(req, route);
         String json;
 
         if (apiRest.alreadyJson() && result instanceof String) {
@@ -117,7 +117,7 @@ public class FrontControllerServlet extends HttpServlet {
      */
     private void dispatchModelAndView(HttpServletRequest req, HttpServletResponse res, RouteMapping route)
             throws ServletException, IOException {
-        Object result = invokeRoute(route);
+        Object result = invokeRoute(req, route);
 
         if (!(result instanceof ModelAndView)) {
             throw new ServletException("Type de retour invalide pour "
@@ -135,9 +135,9 @@ public class FrontControllerServlet extends HttpServlet {
     /**
      * Execute la methode Java associee a la route par reflexion.
      */
-    private Object invokeRoute(RouteMapping route) throws ServletException {
+    private Object invokeRoute(HttpServletRequest req, RouteMapping route) throws ServletException {
         try {
-            return route.invoke(springContext);
+            return route.invoke(springContext, req.getParameterMap());
         } catch (ReflectiveOperationException e) {
             throw new ServletException("Erreur pendant l'invocation de la methode "
                     + route.getMethod().getName(), e);
