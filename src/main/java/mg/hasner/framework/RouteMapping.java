@@ -88,7 +88,7 @@ public class RouteMapping {
     }
 
     /**
-     * Associe un parametre de methode a SpringContext ou a la valeur HTTP de meme nom.
+     * Associe un parametre de methode a SpringContext ou aux donnees HTTP.
      */
     private Object bindParameter(Parameter parameter, Map<String, String[]> requestParameters,
             SpringContext springContext) {
@@ -96,55 +96,7 @@ public class RouteMapping {
             return springContext;
         }
 
-        if (!parameter.isNamePresent()) {
-            throw new IllegalArgumentException("Le nom du parametre de "
-                    + controllerClass.getSimpleName() + "." + method.getName()
-                    + "() est indisponible. Compilez TEST avec l'option -parameters.");
-        }
-
-        String parameterName = parameter.getName();
-        String[] values = requestParameters.get(parameterName);
-
-        if (values == null || values.length == 0) {
-            throw new IllegalArgumentException("Parametre de requete manquant : " + parameterName
-                    + " pour " + controllerClass.getSimpleName() + "." + method.getName() + "().");
-        }
-
-        return convertValue(parameterName, values[0], parameter.getType());
-    }
-
-    /**
-     * Convertit une valeur de formulaire vers un type Java simple.
-     * Le binding d'objet est reserve au Sprint 7 bis.
-     */
-    private Object convertValue(String parameterName, String value, Class<?> parameterType) {
-        try {
-            if (parameterType.equals(String.class)) {
-                return value;
-            }
-            if (parameterType.equals(int.class) || parameterType.equals(Integer.class)) {
-                return Integer.valueOf(value);
-            }
-            if (parameterType.equals(long.class) || parameterType.equals(Long.class)) {
-                return Long.valueOf(value);
-            }
-            if (parameterType.equals(double.class) || parameterType.equals(Double.class)) {
-                return Double.valueOf(value);
-            }
-            if (parameterType.equals(float.class) || parameterType.equals(Float.class)) {
-                return Float.valueOf(value);
-            }
-            if (parameterType.equals(boolean.class) || parameterType.equals(Boolean.class)) {
-                return Boolean.valueOf(value);
-            }
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Valeur invalide pour le parametre " + parameterName
-                    + " : " + value + ". Type attendu : " + parameterType.getSimpleName() + ".", e);
-        }
-
-        throw new IllegalArgumentException("Type non supporte pour le parametre " + parameterName
-                + " : " + parameterType.getName()
-                + ". Le binding d'objet sera disponible au Sprint 7 bis.");
+        return ObjectBinder.bind(parameter, requestParameters);
     }
 
     /**

@@ -69,6 +69,12 @@ Prise en charge des types de methode http (GET/POST)
     - creation d'un fonction pour ajouter data du model dans le request SErvlet : addArgToRequest(req, map)
     - creation d'un dispatcher qui envoye vers la page correspondant au vu
 
+### Spriny 5-bis Accès base
+On doit implémenter une accès à la base
+(on va faire sprint 5bis vite fait. J'ai oublié, vous pouvez le voir dans le TODO avec très peu d'explication (**### Spriny 5-bis Accès base**
+On doit implémenter une accès à la base) Mais à vous de savoir ce qu'il faut faire (car l'idée c'est de pouvoir utiliser des données depuis un base) Pour le test j'ai ici Mysql (Server version: 8.0.46 MySQL Community Server - GPL) installer avec login:root et mdp: "password" pour la configuration dans l'app.
+Posez vos question si vous voulez, allez-y maintenant)
+
 ### Sprint 6 : REST API
 - On va implémenter Web API pour retourner un JSON
 Objectif: 
@@ -123,8 +129,25 @@ Objectif: faire enregistrer les données envoyées depuis un formulaire par para
 ## Sprint 7 : Binding BIS
 Binding object
 formulaire donne un employee----------------> elle va tout de suite être utilisé comme un objet, non comme sprint 7
+- Capacité de faire prendre un liste d'objet (recursion et contenant une liste d'objet)
 
-### Upload ana fichier    
+### Sprint 8 : Upload ana fichier    
+form ----------------------> Action(methode de controller)
+Misy file ao @ formulaire
+- tokony misy moyen afahatarana hoe misy file miaraka amle donnée lasa
+- rehefa azo ilay file de atao inona?
+
+- Aona aloha no atongavany ao @ Action/ tokony ho diponible ao @ méthode d'action?
+    - Map (eventuellement)
+    - Objet tableau de byte (c'est la solution) Mamorona classe (ex:MaFile- fileName, Type(extension), TableByte)
+        Ceci est instancé dans le framework
+        Jerena raha MaFile ny type anle file avy @ formulaire de ampiasaina amazay io
+
+Atao aiza avieo?
+- soit sauv anaty bdd
+- Soit sauv anaty fichier
+
+Mila mana chemin i-stockena azy, variable (ex atao anaty propertie perso) izy io (tsy azo atao en dur)
 ### Gestion de Session
 ### Authaurisation
 
