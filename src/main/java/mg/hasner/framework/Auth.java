@@ -11,4 +11,8 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Auth {
+    /**
+     * Roles autorises. Une liste vide exige seulement une authentification.
+     */
+    String[] roles() default {};
 }

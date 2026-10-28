@@ -1,0 +1,15 @@
+Sprint 10 bis - Autorisation par role
+
+Objectif
+Restreindre une route authentifiee a un ou plusieurs roles presentes dans MaSession.
+
+Implementation
+- @Auth accepte roles = {"ADMIN", "USER"}.
+- rolesSessionKey est configure dans web.xml.
+- FrontControllerServlet retourne 401 si l'utilisateur est absent.
+- FrontControllerServlet retourne 403 si l'utilisateur est connecte mais n'a aucun role autorise.
+- Une route sans roles dans @Auth reste seulement authentifiee.
+
+Test
+- Connexion avec USER : /private est accessible, /admin retourne 403.
+- Connexion avec ADMIN : /admin retourne 200.

@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Array;
+import java.util.Collection;
 import java.util.Map;
 
 public class FrontControllerServlet extends HttpServlet {
@@ -17,6 +19,7 @@ public class FrontControllerServlet extends HttpServlet {
     private String viewPrefix;
     private String viewSuffix;
     private String authSessionKey;
+    private String rolesSessionKey;
 
     /**
      * Initialise le servlet et recupere le mapping deja construit par le listener.
@@ -28,6 +31,7 @@ public class FrontControllerServlet extends HttpServlet {
         viewPrefix = getConfiguredValue("viewPrefix", "/");
         viewSuffix = getConfiguredValue("viewSuffix", ".jsp");
         authSessionKey = getServletContext().getInitParameter("authSessionKey");
+        rolesSessionKey = getServletContext().getInitParameter("rolesSessionKey");
 
         Object value = getServletContext().getAttribute(FrameworkContextListener.REGISTRY_ATTRIBUTE);
 
@@ -88,10 +92,20 @@ public class FrontControllerServlet extends HttpServlet {
                     + ". URLs existantes : " + registry.getExistingUrls());
         }
 
-        if (route.getMethod().isAnnotationPresent(Auth.class) && !isAuthenticated(req)) {
-            res.sendError(HttpServletResponse.SC_UNAUTHORIZED,
-                    "Authentification requise pour acceder a cette ressource.");
-            return;
+        Auth auth = route.getMethod().getAnnotation(Auth.class);
+        if (auth != null) {
+            MaSession session = getAuthenticatedSession(req);
+            if (session == null) {
+                res.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+                        "Authentification requise pour acceder a cette ressource.");
+                return;
+            }
+
+            if (!hasAuthorizedRole(session, auth.roles())) {
+                res.sendError(HttpServletResponse.SC_FORBIDDEN,
+                        "Vous ne possedez pas le role requis pour cette ressource.");
+                return;
+            }
         }
 
         if (route.getMethod().isAnnotationPresent(APIREST.class)) {
@@ -170,18 +184,65 @@ public class FrontControllerServlet extends HttpServlet {
     /**
      * Verifie la presence de l'attribut d'authentification configure dans la session du client.
      */
-    private boolean isAuthenticated(HttpServletRequest req) {
+    private MaSession getAuthenticatedSession(HttpServletRequest req) {
         if (authSessionKey == null || authSessionKey.trim().isEmpty()) {
             throw new IllegalStateException("Le parametre authSessionKey doit etre configure dans web.xml.");
         }
 
         HttpSession httpSession = req.getSession(false);
         if (httpSession == null) {
-            return false;
+            return null;
         }
 
         MaSession session = SessionRegistry.getOrCreate(getServletContext(), httpSession);
-        return session.getAttribute(authSessionKey) != null;
+        return session.getAttribute(authSessionKey) == null ? null : session;
+    }
+
+    /**
+     * Verifie que la session possede au moins un des roles demandes par l'annotation.
+     */
+    private boolean hasAuthorizedRole(MaSession session, String[] requiredRoles) {
+        if (requiredRoles == null || requiredRoles.length == 0) {
+            return true;
+        }
+
+        if (rolesSessionKey == null || rolesSessionKey.trim().isEmpty()) {
+            throw new IllegalStateException("Le parametre rolesSessionKey doit etre configure dans web.xml.");
+        }
+
+        Object storedRoles = session.getAttribute(rolesSessionKey);
+        if (storedRoles == null) {
+            return false;
+        }
+
+        for (String requiredRole : requiredRoles) {
+            if (containsRole(storedRoles, requiredRole)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Accepte une collection, un tableau ou une chaine comme stockage des roles de session.
+     */
+    private boolean containsRole(Object storedRoles, String requiredRole) {
+        if (storedRoles instanceof Collection<?>) {
+            return ((Collection<?>) storedRoles).contains(requiredRole);
+        }
+
+        if (storedRoles.getClass().isArray()) {
+            int length = Array.getLength(storedRoles);
+            for (int index = 0; index < length; index++) {
+                if (requiredRole.equals(String.valueOf(Array.get(storedRoles, index)))) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        return requiredRole.equals(String.valueOf(storedRoles));
     }
 
     /**
