@@ -68,7 +68,7 @@ public class RouteMapping {
      */
     public Object invoke(SpringContext springContext, Map<String, String[]> requestParameters)
             throws ReflectiveOperationException {
-        return invoke(springContext, requestParameters, Collections.<String, MaFile>emptyMap());
+        return invoke(springContext, requestParameters, Collections.<String, MaFile>emptyMap(), null);
     }
 
     /**
@@ -76,6 +76,14 @@ public class RouteMapping {
      */
     public Object invoke(SpringContext springContext, Map<String, String[]> requestParameters,
             Map<String, MaFile> uploadedFiles) throws ReflectiveOperationException {
+        return invoke(springContext, requestParameters, uploadedFiles, null);
+    }
+
+    /**
+     * Instancie le controleur et lie les parametres HTTP, fichiers et session applicative.
+     */
+    public Object invoke(SpringContext springContext, Map<String, String[]> requestParameters,
+            Map<String, MaFile> uploadedFiles, MaSession session) throws ReflectiveOperationException {
         Object controller = controllerClass.getDeclaredConstructor().newInstance();
         method.setAccessible(true);
         Parameter[] methodParameters = method.getParameters();
@@ -91,7 +99,7 @@ public class RouteMapping {
                 ? Collections.<String, MaFile>emptyMap() : uploadedFiles;
 
         for (int index = 0; index < methodParameters.length; index++) {
-            arguments[index] = bindParameter(methodParameters[index], parameters, files, springContext);
+            arguments[index] = bindParameter(methodParameters[index], parameters, files, springContext, session);
         }
 
         return method.invoke(controller, arguments);
@@ -101,9 +109,16 @@ public class RouteMapping {
      * Associe un parametre de methode a SpringContext ou aux donnees HTTP.
      */
     private Object bindParameter(Parameter parameter, Map<String, String[]> requestParameters,
-            Map<String, MaFile> uploadedFiles, SpringContext springContext) {
+            Map<String, MaFile> uploadedFiles, SpringContext springContext, MaSession session) {
         if (parameter.getType().equals(SpringContext.class)) {
             return springContext;
+        }
+
+        if (parameter.getType().equals(MaSession.class)) {
+            if (session == null) {
+                throw new IllegalArgumentException("La MaSession n'a pas ete preparee pour cette route.");
+            }
+            return session;
         }
 
         if (parameter.getType().equals(MaFile.class)) {
@@ -121,6 +136,18 @@ public class RouteMapping {
         }
 
         return ObjectBinder.bind(parameter, requestParameters);
+    }
+
+    /**
+     * Indique si la methode de controleur demande la session applicative.
+     */
+    public boolean needsSession() {
+        for (Parameter parameter : method.getParameters()) {
+            if (parameter.getType().equals(MaSession.class)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

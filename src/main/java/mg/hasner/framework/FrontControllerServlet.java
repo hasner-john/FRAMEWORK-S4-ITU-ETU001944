@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
@@ -138,7 +139,15 @@ public class FrontControllerServlet extends HttpServlet {
     private Object invokeRoute(HttpServletRequest req, RouteMapping route) throws ServletException {
         try {
             Map<String, MaFile> uploadedFiles = UploadManager.readAndStore(req, getServletContext());
-            return route.invoke(springContext, req.getParameterMap(), uploadedFiles);
+            HttpSession httpSession = route.needsSession() ? req.getSession(true) : null;
+            MaSession session = httpSession == null ? null
+                    : SessionRegistry.getOrCreate(getServletContext(), httpSession);
+            Object result = route.invoke(springContext, req.getParameterMap(), uploadedFiles, session);
+
+            if (session != null) {
+                session.flushTo(httpSession);
+            }
+            return result;
         } catch (ReflectiveOperationException e) {
             throw new ServletException("Erreur pendant l'invocation de la methode "
                     + route.getMethod().getName(), e);

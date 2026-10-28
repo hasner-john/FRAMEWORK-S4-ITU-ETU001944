@@ -1,0 +1,16 @@
+Sprint 9 - Gestion de session
+
+Objectif
+Permettre aux controleurs d'utiliser une session personnalisee sans manipuler HttpSession.
+
+Implementation
+- MaSession contient l'id du client, une Map d'attributs et les cles initiales de la session HTTP.
+- MaSession.from(HttpSession) copie l'etat initial.
+- flushTo(HttpSession) reporte les ajouts, les modifications et les suppressions vers Tomcat.
+- SessionRegistry conserve une seule MaSession par client dans le ServletContext.
+- FrameworkContextListener supprime cette MaSession quand la session HTTP expire ou est invalidee.
+- Une methode qui declare MaSession session la recoit automatiquement avant invocation.
+
+Test
+GET /session incremente le compteur visits et cree le message.
+POST /session/remove-message supprime l'attribut message.
