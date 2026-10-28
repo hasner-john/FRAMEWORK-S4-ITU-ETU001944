@@ -16,6 +16,7 @@ public class FrontControllerServlet extends HttpServlet {
     private SpringContext springContext;
     private String viewPrefix;
     private String viewSuffix;
+    private String authSessionKey;
 
     /**
      * Initialise le servlet et recupere le mapping deja construit par le listener.
@@ -26,6 +27,7 @@ public class FrontControllerServlet extends HttpServlet {
         super.init();
         viewPrefix = getConfiguredValue("viewPrefix", "/");
         viewSuffix = getConfiguredValue("viewSuffix", ".jsp");
+        authSessionKey = getServletContext().getInitParameter("authSessionKey");
 
         Object value = getServletContext().getAttribute(FrameworkContextListener.REGISTRY_ATTRIBUTE);
 
@@ -84,6 +86,12 @@ public class FrontControllerServlet extends HttpServlet {
         if (route == null) {
             throw new ServletException("URL/Methode non reconnue : " + httpMethod + " " + url
                     + ". URLs existantes : " + registry.getExistingUrls());
+        }
+
+        if (route.getMethod().isAnnotationPresent(Auth.class) && !isAuthenticated(req)) {
+            res.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+                    "Authentification requise pour acceder a cette ressource.");
+            return;
         }
 
         if (route.getMethod().isAnnotationPresent(APIREST.class)) {
@@ -157,6 +165,23 @@ public class FrontControllerServlet extends HttpServlet {
         } catch (IOException e) {
             throw new ServletException("Erreur pendant la lecture du fichier upload", e);
         }
+    }
+
+    /**
+     * Verifie la presence de l'attribut d'authentification configure dans la session du client.
+     */
+    private boolean isAuthenticated(HttpServletRequest req) {
+        if (authSessionKey == null || authSessionKey.trim().isEmpty()) {
+            throw new IllegalStateException("Le parametre authSessionKey doit etre configure dans web.xml.");
+        }
+
+        HttpSession httpSession = req.getSession(false);
+        if (httpSession == null) {
+            return false;
+        }
+
+        MaSession session = SessionRegistry.getOrCreate(getServletContext(), httpSession);
+        return session.getAttribute(authSessionKey) != null;
     }
 
     /**
