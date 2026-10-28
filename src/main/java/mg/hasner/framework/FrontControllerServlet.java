@@ -137,13 +137,16 @@ public class FrontControllerServlet extends HttpServlet {
      */
     private Object invokeRoute(HttpServletRequest req, RouteMapping route) throws ServletException {
         try {
-            return route.invoke(springContext, req.getParameterMap());
+            Map<String, MaFile> uploadedFiles = UploadManager.readAndStore(req, getServletContext());
+            return route.invoke(springContext, req.getParameterMap(), uploadedFiles);
         } catch (ReflectiveOperationException e) {
             throw new ServletException("Erreur pendant l'invocation de la methode "
                     + route.getMethod().getName(), e);
         } catch (RuntimeException e) {
             throw new ServletException("Erreur pendant l'invocation de la methode "
                     + route.getMethod().getName(), e);
+        } catch (IOException e) {
+            throw new ServletException("Erreur pendant la lecture du fichier upload", e);
         }
     }
 

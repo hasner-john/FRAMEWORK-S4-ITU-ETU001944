@@ -148,8 +148,62 @@ Atao aiza avieo?
 - Soit sauv anaty fichier
 
 Mila mana chemin i-stockena azy, variable (ex atao anaty propertie perso) izy io (tsy azo atao en dur)
-### Gestion de Session
-### Authaurisation
+
+### Sprint 9  : Gestion de Session
+il faut que session user disponible dans le controlleur - il faut qu'elle soit disponible dans la méthode d'action du controlleur
+manamboatra classe  perso session, de rehefa hitany methode d'action ilay izy de injecteny (créer, modif, suppr)
+
+Pour chaque session ilay ihany, eviter le problème de mémoire
+
+Objectif, éviter d'intégrer le http session au niveau du developpeur, il faut qu'on utilise plutôt notre propre session
+
+un instance session par client (pour la performence) -> stocker dans un map dans le contexte (pour que ce soit un par client)
+
+EXPLICATION DETAILLE
+- Créer une classe MaSession(LcsSession) :
+  - id
+  - Map<String, Object> attributes
+  - Set<String> initialKeys (les clés présentes au moment de la copie initiale)
+  - fonction statique from(HttpSession) qui retourne une MaSession:
+    - creation d'une instance de MaSession
+    - remplir son id, et attributes et initialKeys par les contenu de HttpSession (httpsession.getAttributeNames().asIterator().forEachRemaining(name -> {...}))
+  - fonction flushTo(HttpSession) qui va mettre à jour le contenu du vrai HttpSession :
+    - boucler initalKeys et supprimer les données de httpSession qui ne sont plus dans attribute de MaSession(if (!attribute.containsKey(key)) httpsession.removeAttribute(key))
+    - boucler les attribut de Masession et mettre à jour httpSession : httpSession.setAttribute(key, value) 
+- Dans le FrontController :
+  - avant invocation de la methode, pendant la resolution des argument :
+    - verifier si le type de parametre est Masession :
+      - si oui envoyer MaSession.from(request.getSession(true))
+      - sinon comme avant
+  - apres l'invocation de la methode, recuperer l'argument de type MaSession passé à la methode et utiliser flushTo(request.getSession(false))
+- Dans MaSession ajouter les fonction :
+  - getAttribute(name) pour lire un attribut coté developper
+  - setAttribute(name,value)
+  - removeAttribute(name)
 
 
+### Sprint 10 : Authaurisation
+Autorisation : methode controlleur manisiny autorisation izay vao afaka mampiasa / ou mila rôle admin
+Comment?
+Annotation, 
+cela devrait être stocker dans session dans un variable quand un user est connéter
+créer un autre varible pour le developper pour qu'il peut stocker les différents types de role
+Comment savoir le variable de session? -> on le défini un fichier de propriété
+
+(Methode d'action dans le controller du dev
+tsy maintsy connecter vao afaka mi-executer azy (authentification))
+
+
+# Sprint 10 bis connéter et avec un rôle spécifique
+connéter et avec un rôle spécifique (prof, etudiant, .....)
+- Rehefa misy methode d'action misy anle annotation (role) -> mijery hoe misy an'ito variable ity ve @ fichier de propriéte(web.xml ohatra) -> dia raha misy ao dia jerena indray hoe misy anio ve any anaty session
+
+
+
+### Singleton du controlleur
+ampirimina anay context hash, verifier si il existe d'abord
+
+
+## NB
+Les initialisations des attributs se fait dans le listener non dans front controller servlet
 

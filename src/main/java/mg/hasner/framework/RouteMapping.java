@@ -68,6 +68,14 @@ public class RouteMapping {
      */
     public Object invoke(SpringContext springContext, Map<String, String[]> requestParameters)
             throws ReflectiveOperationException {
+        return invoke(springContext, requestParameters, Collections.<String, MaFile>emptyMap());
+    }
+
+    /**
+     * Instancie le controleur et lie les parametres HTTP, SpringContext et les fichiers uploades.
+     */
+    public Object invoke(SpringContext springContext, Map<String, String[]> requestParameters,
+            Map<String, MaFile> uploadedFiles) throws ReflectiveOperationException {
         Object controller = controllerClass.getDeclaredConstructor().newInstance();
         method.setAccessible(true);
         Parameter[] methodParameters = method.getParameters();
@@ -79,9 +87,11 @@ public class RouteMapping {
         Object[] arguments = new Object[methodParameters.length];
         Map<String, String[]> parameters = requestParameters == null
                 ? Collections.<String, String[]>emptyMap() : requestParameters;
+        Map<String, MaFile> files = uploadedFiles == null
+                ? Collections.<String, MaFile>emptyMap() : uploadedFiles;
 
         for (int index = 0; index < methodParameters.length; index++) {
-            arguments[index] = bindParameter(methodParameters[index], parameters, springContext);
+            arguments[index] = bindParameter(methodParameters[index], parameters, files, springContext);
         }
 
         return method.invoke(controller, arguments);
@@ -91,9 +101,23 @@ public class RouteMapping {
      * Associe un parametre de methode a SpringContext ou aux donnees HTTP.
      */
     private Object bindParameter(Parameter parameter, Map<String, String[]> requestParameters,
-            SpringContext springContext) {
+            Map<String, MaFile> uploadedFiles, SpringContext springContext) {
         if (parameter.getType().equals(SpringContext.class)) {
             return springContext;
+        }
+
+        if (parameter.getType().equals(MaFile.class)) {
+            if (!parameter.isNamePresent()) {
+                throw new IllegalArgumentException("Le nom du parametre fichier est indisponible."
+                        + " Compilez TEST avec l'option -parameters.");
+            }
+
+            MaFile uploadedFile = uploadedFiles.get(parameter.getName());
+            if (uploadedFile == null) {
+                throw new IllegalArgumentException("Fichier manquant pour le parametre "
+                        + parameter.getName() + ".");
+            }
+            return uploadedFile;
         }
 
         return ObjectBinder.bind(parameter, requestParameters);
